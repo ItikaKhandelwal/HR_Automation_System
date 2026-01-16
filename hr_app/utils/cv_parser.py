@@ -3,30 +3,50 @@ import os
 import re
 from typing import List, Dict, Tuple
 
-# Try multiple PDF libraries
+# Try to import PDF libraries with better error handling
+PDFPLUMBER_AVAILABLE = False
+PYPDF2_AVAILABLE = False
+PDFMINER_AVAILABLE = False
+DOCX_AVAILABLE = False
+OCR_AVAILABLE = False
+
 try:
     import pdfplumber
     PDFPLUMBER_AVAILABLE = True
+    print("✓ pdfplumber is available")
 except ImportError:
-    PDFPLUMBER_AVAILABLE = False
+    print("⚠ pdfplumber not installed. Install with: pip install pdfplumber")
 
 try:
     import PyPDF2
     PYPDF2_AVAILABLE = True
+    print("✓ PyPDF2 is available")
 except ImportError:
-    PYPDF2_AVAILABLE = False
+    print("⚠ PyPDF2 not installed. Install with: pip install PyPDF2")
 
 try:
     from pdfminer.high_level import extract_text as pdfminer_extract
     PDFMINER_AVAILABLE = True
+    print("✓ pdfminer.six is available")
 except ImportError:
-    PDFMINER_AVAILABLE = False
+    print("⚠ pdfminer.six not installed. Install with: pip install pdfminer.six")
 
 try:
     import docx
     DOCX_AVAILABLE = True
+    print("✓ python-docx is available")
 except ImportError:
-    DOCX_AVAILABLE = False
+    print("⚠ python-docx not installed. Install with: pip install python-docx")
+
+# OCR is optional, so don't show warning if not installed
+try:
+    import pytesseract
+    from pdf2image import convert_from_path
+    OCR_AVAILABLE = True
+    print("✓ OCR libraries are available")
+except ImportError:
+    OCR_AVAILABLE = False
+    # Don't print warning as OCR is optional
 
 
 class CVParser:
@@ -88,12 +108,51 @@ class CVParser:
             except Exception as e:
                 print(f"pdfminer failed: {e}")
         
-        # If all methods fail, try OCR suggestion
+        # Method 4: Try OCR if all else fails (for scanned PDFs)
+        if not text.strip() and OCR_AVAILABLE:
+            print("⚠ No text found with standard methods. Trying OCR...")
+            ocr_text = CVParser.extract_text_with_ocr(file_path)
+            if ocr_text.strip():
+                return ocr_text
+        
+        # If all methods fail
         if not text.strip():
-            print("⚠ No text could be extracted. The PDF might be scanned.")
-            print("   Consider using OCR: pip install pytesseract pillow")
+            print("❌ No text could be extracted. The PDF might be scanned or image-based.")
+            print("   Install OCR for scanned PDFs: pip install pytesseract pdf2image pillow")
         
         return text
+    
+    @staticmethod
+    def extract_text_with_ocr(file_path: str) -> str:
+        """
+        Extract text from scanned PDF using OCR.
+        This is optional and only works if OCR libraries are installed.
+        
+        Args:
+            file_path: Path to the PDF file
+            
+        Returns:
+            Extracted text as string
+        """
+        if not OCR_AVAILABLE:
+            return ""
+        
+        try:
+            text = ""
+            
+            # Convert PDF to images
+            images = convert_from_path(file_path)
+            
+            # Extract text from each image
+            for i, image in enumerate(images):
+                page_text = pytesseract.image_to_string(image)
+                text += f"--- Page {i+1} ---\n"
+                text += page_text + "\n\n"
+            
+            return text
+        except Exception as e:
+            print(f"OCR failed: {e}")
+            return ""
     
     @staticmethod
     def extract_text_from_docx(file_path: str) -> str:
@@ -106,20 +165,23 @@ class CVParser:
         Returns:
             Extracted text as string
         """
+        if not DOCX_AVAILABLE:
+            print("❌ python-docx not installed. Install with: pip install python-docx")
+            return ""
+        
         text = ""
-        if DOCX_AVAILABLE:
-            try:
-                doc = docx.Document(file_path)
-                for paragraph in doc.paragraphs:
-                    text += paragraph.text + "\n"
-                
-                # Also extract text from tables
-                for table in doc.tables:
-                    for row in table.rows:
-                        for cell in row.cells:
-                            text += cell.text + "\n"
-            except Exception as e:
-                print(f"Error reading DOCX: {e}")
+        try:
+            doc = docx.Document(file_path)
+            for paragraph in doc.paragraphs:
+                text += paragraph.text + "\n"
+            
+            # Also extract text from tables
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        text += cell.text + "\n"
+        except Exception as e:
+            print(f"Error reading DOCX: {e}")
         
         return text
     
@@ -162,7 +224,7 @@ class CVParser:
         text = re.sub(r'\s+', ' ', text)
         
         # Remove special characters but keep important ones
-        text = re.sub(r'[^\w\s.,:;!?@()\-/]', ' ', text)
+        text = re.sub(r'[^\w\s.,:;!?@()\-/\n]', ' ', text)
         
         # Normalize line endings
         text = text.replace('\r\n', '\n').replace('\r', '\n')
@@ -237,9 +299,6 @@ class CVAnalyzer:
         text_lower = text.lower()
         found_skills = []
         
-        # Clean text - remove common words that might cause false positives
-        # (e.g., "python" in "I have experience with Python programming")
-        
         # Check for each skill and its variations
         for skill, variations in CVAnalyzer.SKILL_KEYWORDS.items():
             for variation in variations:
@@ -249,25 +308,6 @@ class CVAnalyzer:
                     if skill not in found_skills:
                         found_skills.append(skill)
                     break
-        
-        # Additional check for skills mentioned in context
-        skill_contexts = [
-            (r'skills?[\s:]*(.*?)(?:\n\n|\n\w+:)', text_lower),  # Skills section
-            (r'technical\s*skills?[\s:]*(.*?)(?:\n\n|\n\w+:)', text_lower),  # Technical skills
-            (r'expertise[\s:]*(.*?)(?:\n\n|\n\w+:)', text_lower),  # Expertise section
-        ]
-        
-        for pattern, search_text in skill_contexts:
-            match = re.search(pattern, search_text, re.DOTALL | re.IGNORECASE)
-            if match:
-                skills_text = match.group(1)
-                # Check for each skill in the skills section
-                for skill, variations in CVAnalyzer.SKILL_KEYWORDS.items():
-                    for variation in variations:
-                        if variation in skills_text.lower():
-                            if skill not in found_skills:
-                                found_skills.append(skill)
-                            break
         
         return found_skills
     
@@ -325,20 +365,6 @@ class CVAnalyzer:
                     years_found.append(total_years)
                 except:
                     pass
-        
-        # Pattern 3: Look for experience in summary/objective
-        summary_pattern = r'(?:summary|objective|profile)[\s:]*(.*?)(?:\n\n|\n\w+:)'
-        match = re.search(summary_pattern, text_lower, re.DOTALL | re.IGNORECASE)
-        if match:
-            summary_text = match.group(1)
-            for pattern in CVAnalyzer.EXPERIENCE_PATTERNS:
-                sub_matches = re.findall(pattern, summary_text)
-                for match_val in sub_matches:
-                    try:
-                        years = float(match_val[0] if isinstance(match_val, tuple) else match_val)
-                        years_found.append(years)
-                    except:
-                        continue
         
         # Return the maximum years found, or 0 if none
         return max(years_found) if years_found else 0.0
@@ -532,7 +558,6 @@ class CVAnalyzer:
             return 'Mid-Level Developer'
         else:
             return 'Senior Professional'
-        
 
 # Add this to CVParser class
 
