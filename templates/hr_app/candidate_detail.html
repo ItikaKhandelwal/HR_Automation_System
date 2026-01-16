@@ -1,0 +1,208 @@
+<!-- templates/hr_app/candidate_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>{{ candidate.name }}
+                    </h4>
+                    <div>
+                        <span class="badge {% if candidate.is_processed %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if candidate.is_processed %}
+                                <i class="fas fa-check-circle me-1"></i>Processed
+                            {% else %}
+                                <i class="fas fa-clock me-1"></i>Pending
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Basic Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-id-card me-2 text-muted"></i>Contact Information</h5>
+                        <ul class="list-unstyled">
+                            {% if candidate.email %}
+                                <li class="mb-2">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>
+                                    <strong>Email:</strong> {{ candidate.email }}
+                                </li>
+                            {% endif %}
+                            {% if candidate.phone %}
+                                <li class="mb-2">
+                                    <i class="fas fa-phone me-2 text-primary"></i>
+                                    <strong>Phone:</strong> {{ candidate.phone }}
+                                </li>
+                            {% endif %}
+                            <li class="mb-2">
+                                <i class="fas fa-calendar me-2 text-primary"></i>
+                                <strong>Uploaded:</strong> {{ candidate.uploaded_at|date:"M d, Y" }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-user-tie me-2 text-primary"></i>
+                                <strong>Uploaded By:</strong> {{ candidate.uploaded_by.username|default:"System" }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-chart-line me-2 text-muted"></i>Professional Details</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-briefcase me-2 text-success"></i>
+                                <strong>Experience:</strong> {{ candidate.experience_years }} years
+                                <span class="badge bg-info ms-2">{{ experience_level }}</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-tag me-2 text-success"></i>
+                                <strong>Category:</strong> 
+                                <span class="badge bg-primary">{{ candidate.category.name|default:"Uncategorized" }}</span>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-graduation-cap me-2 text-success"></i>
+                                <strong>Education:</strong> 
+                                <span>{{ candidate.education|default:"Not specified"|truncatechars:50 }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Skills Section -->
+                <div class="mb-4">
+                    <h5><i class="fas fa-tools me-2 text-muted"></i>Skills</h5>
+                    {% if skills_list %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for skill in skills_list %}
+                                <span class="badge bg-info p-2">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No skills detected. The CV might need manual review.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- CV File Info -->
+                <div class="mb-4">
+                    <h5><i class="fas fa-file me-2 text-muted"></i>CV File</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                    <strong>{{ candidate.get_filename }}</strong>
+                                </div>
+                                <a href="{{ candidate.cv_file.url }}" class="btn btn-outline-primary" target="_blank">
+                                    <i class="fas fa-download me-2"></i>Download CV
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    {% if not candidate.is_processed %}
+                        <a href="{% url 'process_cv' candidate.id %}" class="btn btn-success">
+                            <i class="fas fa-cog me-2"></i>Process CV
+                        </a>
+                    {% else %}
+                        <div class="btn-group">
+                            <a href="{% url 'process_cv' candidate.id %}" class="btn btn-warning">
+                                <i class="fas fa-redo me-2"></i>Reprocess
+                            </a>
+                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#textModal">
+                                <i class="fas fa-eye me-2"></i>View Full Text
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar with Actions -->
+    <div class="col-lg-4">
+        <!-- Actions Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'upload_cv' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Upload New CV
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>View All Candidates
+                    </a>
+                    <a href="{% url 'categorize' %}" class="btn btn-outline-success">
+                        <i class="fas fa-tags me-2"></i>Categorize All
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Information -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-tag me-2"></i>Category Details</h5>
+            </div>
+            <div class="card-body">
+                {% if candidate.category %}
+                    <h6>{{ candidate.category.name }}</h6>
+                    <p class="small">{{ candidate.category.description|default:"Auto-generated category based on skills and experience." }}</p>
+                    
+                    <h6 class="mt-3">Category Keywords:</h6>
+                    <div class="small text-muted">
+                        {{ candidate.category.keywords|default:"Keywords not specified" }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This candidate is not categorized yet.
+                    </div>
+                    <a href="{% url 'process_cv' candidate.id %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-magic me-2"></i>Categorize Now
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Full Text View -->
+<div class="modal fade" id="textModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt me-2"></i>Extracted Text - {{ candidate.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if candidate.raw_text %}
+                    <pre style="white-space: pre-wrap; max-height: 500px; overflow-y: auto; font-size: 0.9em;">{{ candidate.raw_text }}</pre>
+                {% else %}
+                    <div class="alert alert-warning">
+                        No text extracted from this CV.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

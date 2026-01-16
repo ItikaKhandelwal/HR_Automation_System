@@ -1,0 +1,170 @@
+<!-- templates/hr_app/categorize.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-tags me-2"></i>Bulk Categorization
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h1 class="display-4 text-primary">{{ total_count }}</h1>
+                                <h5 class="text-muted">Total Candidates</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h1 class="display-4 text-warning">{{ unprocessed_count }}</h1>
+                                <h5 class="text-muted">Pending Processing</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h1 class="display-4 text-success">{{ processed_percentage|floatformat:0 }}%</h1>
+                                <h5 class="text-muted">Processed</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Processing Progress</span>
+                        <span>{{ processed_percentage|floatformat:1 }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ processed_percentage }}%"
+                             aria-valuenow="{{ processed_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Categorization Form -->
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>Categorization Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle me-2"></i>How Bulk Categorization Works</h5>
+                                <ul class="mb-0">
+                                    <li>System will process all un-categorized candidates</li>
+                                    <li>Text will be extracted from CV files</li>
+                                    <li>Skills and experience will be analyzed</li>
+                                    <li>Candidates will be assigned appropriate categories</li>
+                                    <li>This may take a few moments depending on number of CVs</li>
+                                </ul>
+                            </div>
+                            
+                            {% if unprocessed_count > 0 %}
+                                <div class="alert alert-warning">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                                        <div>
+                                            <h5 class="alert-heading">Ready to Process {{ unprocessed_count }} Candidate(s)</h5>
+                                            <p class="mb-0">
+                                                Click the button below to start automatic categorization of all pending candidates.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-play-circle me-2"></i>Start Bulk Categorization
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                                        <div>
+                                            <h5 class="alert-heading">All Candidates Processed!</h5>
+                                            <p class="mb-0">
+                                                There are no pending candidates for categorization. All candidates have been processed.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                        <i class="fas fa-eye me-2"></i>View Candidates
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Existing Categories -->
+                <div class="card mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Existing Categories
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for category in categories %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <span class="badge bg-primary me-2">{{ category.candidate_set.count }}</span>
+                                                {{ category.name }}
+                                            </h6>
+                                            <p class="card-text small text-muted">
+                                                {{ category.description|default:"No description" }}
+                                            </p>
+                                            <div class="small">
+                                                <strong>Keywords:</strong> {{ category.keywords|truncatechars:100 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        No categories defined yet. Categories will be created automatically during processing.
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

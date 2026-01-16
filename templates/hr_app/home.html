@@ -1,0 +1,142 @@
+<!-- templates/hr_app/home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-4 mb-3">HR Automation System</h1>
+    <p class="lead text-muted">Automated CV Screening & Candidate Categorization</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-users feature-icon"></i>
+                    <h5 class="card-title">Total Candidates</h5>
+                    <h2 class="text-success">{{ total_candidates }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle feature-icon"></i>
+                    <h5 class="card-title">Processed</h5>
+                    <h2 class="text-primary">{{ processed_candidates }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags feature-icon"></i>
+                    <h5 class="card-title">Categories</h5>
+                    <h2 class="text-info">{{ categories_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Cards (iLovePDF style) -->
+<h2 class="text-center mb-4">HR Tools</h2>
+<div class="row">
+    <!-- Upload CV Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-file-upload fa-3x text-primary"></i>
+                </div>
+                <h4 class="card-title">Upload CV</h4>
+                <p class="card-text">Upload candidate CVs in PDF or DOCX format for processing.</p>
+                <a href="{% url 'upload_cv' %}" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-upload me-2"></i>Upload Now
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Candidates Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-list-alt fa-3x text-success"></i>
+                </div>
+                <h4 class="card-title">View Candidates</h4>
+                <p class="card-text">Browse and search through all candidates in the system.</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-success btn-lg w-100">
+                    <i class="fas fa-eye me-2"></i>View Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categorize CVs Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-tags fa-3x text-warning"></i>
+                </div>
+                <h4 class="card-title">Categorize CVs</h4>
+                <p class="card-text">Automatically categorize candidates based on skills and experience.</p>
+                <a href="{% url 'categorize' %}" class="btn btn-warning btn-lg w-100">
+                    <i class="fas fa-cogs me-2"></i>Categorize Now
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Skill Filter Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-filter fa-3x text-info"></i>
+                </div>
+                <h4 class="card-title">Skill Filter</h4>
+                <p class="card-text">Filter candidates by specific skills like Python, Java, SQL, etc.</p>
+                <a href="{% url 'skill_filter' %}" class="btn btn-info btn-lg w-100">
+                    <i class="fas fa-search me-2"></i>Filter by Skill
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Dashboard Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-chart-bar fa-3x text-danger"></i>
+                </div>
+                <h4 class="card-title">Admin Panel</h4>
+                <p class="card-text">Advanced management and system configuration.</p>
+                <a href="/admin/" class="btn btn-danger btn-lg w-100">
+                    <i class="fas fa-cog me-2"></i>Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- How It Works Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-question-circle fa-3x text-secondary"></i>
+                </div>
+                <h4 class="card-title">How It Works</h4>
+                <ol class="text-start">
+                    <li>Upload CV files</li>
+                    <li>System extracts text automatically</li>
+                    <li>Analyzes skills & experience</li>
+                    <li>Categorizes candidates</li>
+                    <li>View & filter results</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

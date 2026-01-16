@@ -1,0 +1,56 @@
+<!-- templates/hr_app/upload_cv.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-upload me-2"></i>Upload Candidate CV
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Candidate Name (Optional)</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="Enter candidate name or leave empty to use filename">
+                        <div class="form-text">If left empty, the filename will be used as candidate name.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="cv_file" class="form-label">CV File</label>
+                        <input type="file" class="form-control" id="cv_file" name="cv_file" 
+                               accept=".pdf,.docx" required>
+                        <div class="form-text">
+                            Supported formats: PDF and DOCX. Maximum size: 10MB.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>What happens next?</h5>
+                        <ul class="mb-0">
+                            <li>CV will be uploaded securely</li>
+                            <li>Text will be extracted automatically</li>
+                            <li>You'll verify the extracted text</li>
+                            <li>System will analyze and categorize</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i>Upload & Process CV
+                        </button>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

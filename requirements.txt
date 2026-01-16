@@ -1,0 +1,7 @@
+# requirements.txt
+Django==4.2.10
+PyPDF2==3.0.1
+python-docx==0.8.11
+Pillow==10.1.0
+pdfplumber==0.10.3
+pdfminer.six==20221105

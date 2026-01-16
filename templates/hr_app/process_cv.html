@@ -1,0 +1,118 @@
+<!-- templates/hr_app/process_cv.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>Process CV: {{ candidate.name }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- File Info -->
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-file me-2"></i>CV File Information</h5>
+                    <p class="mb-1"><strong>File:</strong> {{ candidate.get_filename }}</p>
+                    <p class="mb-0"><strong>Uploaded:</strong> {{ candidate.uploaded_at|date:"M d, Y H:i" }}</p>
+                </div>
+                
+                <!-- Extracted Text Preview -->
+                <div class="mb-4">
+                    <h5>Extracted Text Preview</h5>
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            {% if preview_text %}
+                                <pre class="mb-0" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ preview_text }}</pre>
+                            {% elif preview_error %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Error extracting text: {{ preview_error }}
+                                </div>
+                                <p class="text-muted">Try uploading a text-based PDF or DOCX file.</p>
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <i class="fas fa-sync fa-spin fa-2x text-muted mb-3"></i>
+                                    <p>Extracting text from CV...</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-text">
+                        This is a preview of the text extracted from the CV. The system will analyze this text.
+                    </div>
+                </div>
+                
+                <!-- Processing Form -->
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-magic me-2"></i>What will happen?</h5>
+                        <ul class="mb-0">
+                            <li>Skills will be extracted from the text</li>
+                            <li>Years of experience will be calculated</li>
+                            <li>Education information will be identified</li>
+                            <li>Candidate will be automatically categorized</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-play me-2"></i>Start Processing
+                        </button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Processing Information Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Processing Details</h5>
+            </div>
+            <div class="card-body">
+                <h6>Skills Being Detected:</h6>
+                <div class="mb-3">
+                    {% for skill, variations in skill_keywords.items %}
+                        <span class="badge bg-primary me-1 mb-1">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                
+                <h6>Categories Available:</h6>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Python Developer
+                        <span class="badge bg-primary">Python + Django/Flask</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Data Analyst
+                        <span class="badge bg-primary">Excel + SQL</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Java Developer
+                        <span class="badge bg-primary">Java + Experience</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Fresher
+                        <span class="badge bg-primary">No Experience</span>
+                    </li>
+                </ul>
+                
+                <div class="alert alert-light">
+                    <h6><i class="fas fa-lightbulb me-2"></i>Tip:</h6>
+                    <p class="small mb-0">
+                        The system uses rule-based matching. For best results, ensure the CV is in English and text-based (not scanned).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

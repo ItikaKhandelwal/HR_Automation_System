@@ -1,0 +1,90 @@
+/* static/css/style.css */
+
+/* Custom styles for HR Automation System */
+
+/* Card animations */
+.card {
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+}
+
+.card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+}
+
+/* Skill badges */
+.badge.skill-badge {
+    font-size: 0.85em;
+    padding: 5px 10px;
+    margin: 2px;
+}
+
+/* Candidate status indicators */
+.status-processed {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-pending {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+/* File upload styling */
+.file-upload-area {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-upload-area:hover {
+    background-color: #f8f9fa;
+    border-color: #0056b3;
+}
+
+/* Dashboard table */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Custom buttons */
+.btn-action {
+    min-width: 100px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+
+/* Animation for processing */
+@keyframes processing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.processing-spinner {
+    animation: processing 1s linear infinite;
+}
